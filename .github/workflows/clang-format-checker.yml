@@ -1,5 +1,5 @@
 name: "Check code formatting"
-on: pull_request_target
+on: [pull_request_target, workflow_dispatch]
 permissions:
   pull-requests: write
 
@@ -54,13 +54,13 @@ jobs:
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES"
            then
-              echo "::set-output name=result::clean"
+              echo "format_output=diff" >> $GITHUB_OUTPUT
             else
-              echo "::set-output name=result::dirty"
+              echo "format_output=clear" >> $GITHUB_OUTPUT
             fi
 
       - name: Upload diff
         uses: actions/upload-artifact@v3
-        if: steps.formatter.outputs.result == 'dirty'
+        if: $format_output == 'diff'
         with:
           path: /clang-format-patch/$GITHUB_PR_NUMBER
