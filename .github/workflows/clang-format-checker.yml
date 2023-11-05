@@ -1,5 +1,5 @@
 name: "Check code formatting"
-on: [pull_request_target, workflow_dispatch]
+on: pull_request_target
 permissions:
   pull-requests: write
 
@@ -61,6 +61,6 @@ jobs:
 
       - name: Upload diff
         uses: actions/upload-artifact@v3
-        if: $format_output == 'diff'
+        if: ${{ env.format_output == 'diff' }}
         with:
           path: /clang-format-patch/$GITHUB_PR_NUMBER

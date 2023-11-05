@@ -80,6 +80,8 @@ View the diff from {self.name} here.
 
         pr_text += f"diff saved to {patch_path}"
 
+        print(pr_text)
+
         if existing_comment:
             existing_comment.edit(pr_text)
         else:
