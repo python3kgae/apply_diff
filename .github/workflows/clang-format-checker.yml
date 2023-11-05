@@ -59,8 +59,8 @@ jobs:
               echo "::set-output name=result::dirty"
             fi
 
-        - name: Upload diff
-          uses: actions/upload-artifact@v3
-          if: steps.formatter.outputs.result == 'dirty'
-          with:
-            path: /clang-format-patch/$GITHUB_PR_NUMBER
+      - name: Upload diff
+        uses: actions/upload-artifact@v3
+        if: steps.formatter.outputs.result == 'dirty'
+        with:
+          path: /clang-format-patch/$GITHUB_PR_NUMBER
