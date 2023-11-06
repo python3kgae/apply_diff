@@ -42,13 +42,28 @@ jobs:
     if: ${{ startsWith(github.event.comment.body, '@apply-formatting<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
-
+      - uses: actions/github-script@v3
+        id: get-pr
+        with:
+          script: |
+            const request = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            }
+            core.info(`Getting PR #${request.pull_number} from ${request.owner}/${request.repo}`)
+            try {
+              const result = await github.pulls.get(request)
+              return result.data
+            } catch (err) {
+              core.setFailed(`Request failed with error ${err}`)
+            } 
       - name: Fetch LLVM sources
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+          repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
 
       - name: Setup Python env
         uses: actions/setup-python@v4
@@ -72,6 +87,6 @@ jobs:
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
-          branch: test21
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          branch: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+          repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
