@@ -17,14 +17,15 @@ jobs:
         env:
           COMMENT: ${{ github.event.comment.body }}
           AUTHOR: ${{ github.event.pull_request.author }}
-          SENDER: ${{ github.event.sender }}
+          CREATE_AT: ${{ github.event.pull_request.created_at  }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
-          REACTION: ${{ github.event.comment.reaction }}
+          REACTION: ${{ github.event.comment.reactions.rocket }}
+          USER: ${{ github.event.comment.author }}
         run: |
           echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
           echo "COMMENT: $COMMENT"
           echo "AUTHOR: $AUTHOR"
-          echo "SENDER: $SENDER"
+          echo "CREATE_AT: $CREATE_AT"
           echo "REACTION: $REACTION"
 
   apply_diff:
