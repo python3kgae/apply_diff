@@ -19,6 +19,10 @@ from functools import cached_property
 import github
 from github import IssueComment, PullRequest
 
+LF = '\n'
+CRLF = '\r\n'
+CR = '\r'
+
 diff_pat = re.compile(r"``````````diff(?P<DIFF>.+)``````````", re.DOTALL)
 
 def apply_patches(args: argparse.Namespace) -> None:
@@ -74,6 +78,8 @@ def apply_patches(args: argparse.Namespace) -> None:
 
     # create a temporary file
     with tempfile.NamedTemporaryFile() as tmp:
+        # force to linux line endings
+        diff = diff.replace(CRLF, LF).replace(CR, LF)
         tmp.write(diff.encode("utf-8"))
         tmp.flush()
 
