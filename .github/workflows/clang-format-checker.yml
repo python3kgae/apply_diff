@@ -54,9 +54,9 @@ jobs:
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES"
            then
-              echo "format_output=clear" >> $GITHUB_OUTPUT
+              echo "format_output=clear" >> $GITHUB_ENV
             else
-              echo "format_output=diff" >> $GITHUB_OUTPUT
+              echo "format_output=diff" >> $GITHUB_ENV
             fi
 
       - name: Upload diff
