@@ -72,6 +72,6 @@ jobs:
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
-          branch: ${{ github.event.pull_request.head.ref }}
+          branch: test21
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
