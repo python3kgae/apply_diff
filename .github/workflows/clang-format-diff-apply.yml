@@ -5,8 +5,6 @@ on:
     # Filter by reaction type
     #reactions:
     #  - +1
-env:
-  TRIGGER: false
 
 permissions:
   pull-requests: write
@@ -18,6 +16,7 @@ jobs:
       - name: echo
         env:
           COMMENT: ${{ github.event.comment.body }}
+          COMMENT_ID: ${{ github.event.comment.id }}
           AUTHOR: ${{ github.event.pull_request.author }}
           CREATE_AT: ${{ github.event.pull_request.created_at  }}
           GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
@@ -32,36 +31,13 @@ jobs:
           echo "REACTION: $REACTION"
           echo "ISSUE_REACTION: $ISSUE_REACTION"
           echo "USER: $USER"
-
-  check_trigger:
-    runs-on: ubuntu-latest
-    steps:
-      -  uses: khan/pull-request-comment-trigger@v1.1.0
-         id: check
-         with:
-           trigger: '@apply-formatting'
-           reaction: rocket
-         env:
-           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      -  name: echo format_output
-         run: |
-           echo TRIGGER is $TRIGGERED
-           echo "TRIGGER=$TRIGGERED" >> $GITHUB_ENV
-         env:
-           TRIGGERED: ${{ steps.check.outputs.triggered }}
-    outputs:
-      triggered: ${{ steps.check.outputs.triggered }}
+          echo "COMMENT_ID: $COMMENT_ID"
 
   apply_diff:
     needs: [check_trigger]
-    if: ${{ needs.check_trigger.outputs.triggered == 'true' }}
-    #if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
+    if: ${{ startsWith(github.event.comment.body, '@apply-formatting<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: download-diff
-          path: /home/runner/work/format/${{ github.event.issue.number }}
 
       - name: Fetch LLVM sources
         uses: actions/checkout@v4
@@ -81,10 +57,12 @@ jobs:
       - name: Apply code diff
         env:
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           python utils/git/code-format-helper.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
-            --issue-number $GITHUB_PR_NUMBER
+            --issue-number $GITHUB_PR_NUMBER \
+            --comment-id $COMMENT_ID
 
       - name: Commit & Push changes
         uses: actions-js/push@master
