@@ -24,10 +24,44 @@ diff_pat = re.compile(r"``````````diff(?P<DIFF>.+)``````````", re.DOTALL)
 def apply_patches(args: argparse.Namespace) -> None:
     repo = github.Github(args.token).get_repo(args.repo)
     pr = repo.get_issue(args.issue_number).as_pull_request()
-    print("head repo is")
+
     print(pr.head.repo.full_name)
-    print("head ref is")
-    print(pr.head.ref)    
+    print(pr.head.repo.html_url)
+    print(pr.head.ref)
+    # git add remote for pr.head.repo.full_name
+    remote_cmd = [
+        "git",
+        "remote",
+        "add",
+        "pr",
+        pr.head.repo.html_url
+    ]
+    print(f"Running: {' '.join(remote_cmd)}")
+    proc = subprocess.run(remote_cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise(f"Failed to add remote for {pr.head.repo.full_name}")
+    # git fetch pr.head.ref
+    fetch_cmd = [
+        "git",
+        "fetch",
+        "pr",
+        pr.head.ref
+    ]
+    print(f"Running: {' '.join(fetch_cmd)}")
+    proc = subprocess.run(fetch_cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise(f"Failed to fetch {pr.head.ref}")
+    # git checkout pr.head.ref
+    checkout_cmd = [
+        "git",
+        "checkout",
+        pr.head.ref
+    ]
+    print(f"Running: {' '.join(checkout_cmd)}")
+    proc = subprocess.run(checkout_cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise(f"Failed to checkout {pr.head.ref}")
+
     comment = pr.get_issue_comment(args.comment_id)
     if comment is None:
         raise(f"Comment {args.comment_id} does not exist")
@@ -67,6 +101,28 @@ def apply_patches(args: argparse.Namespace) -> None:
     if proc.returncode != 0:
         raise(f"Failed to add files to commit")
 
+    # run git commit -m "Apply diff from comment {args.comment_id}"
+    commit_cmd = [
+        "git",
+        "commit",
+        "-m",
+        f"Apply diff from comment {args.comment_id}"
+    ]
+    print(f"Running: {' '.join(commit_cmd)}")
+    proc = subprocess.run(commit_cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise(f"Failed to commit changes")
+    # run git push pr.head.repo.full_name pr.head.ref
+    push_cmd = [
+        "git",
+        "push",
+        "pr",
+        pr.head.ref
+    ]
+    print(f"Running: {' '.join(push_cmd)}")
+    proc = subprocess.run(push_cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise(f"Failed to push changes to {pr.head.ref}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
