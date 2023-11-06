@@ -114,7 +114,7 @@ def apply_patches(args: argparse.Namespace) -> None:
         "git",
         "commit",
         "-m",
-        f"Apply diff from comment {args.comment_id}"
+        f"\"Apply diff from comment {args.comment_id}\""
     ]
     print(f"Running: {' '.join(commit_cmd)}")
     proc = subprocess.run(commit_cmd, capture_output=True)
