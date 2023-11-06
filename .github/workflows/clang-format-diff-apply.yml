@@ -47,12 +47,12 @@ jobs:
            echo "TRIGGER=$TRIGGERED" >> $GITHUB_ENV
          env:
            TRIGGERED: ${{ steps.check.outputs.triggered }}
+    outputs:
+      triggered: ${{ steps.check.outputs.triggered }}
 
   apply_diff:
     needs: [check_trigger]
-    env:
-      TRIGGER: ${{ env.TRIGGER }}
-    if: ${{ env.TRIGGER == 'true' }}
+    if: ${{ needs.check_trigger.outputs.triggered == 'true' }}
     #if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
