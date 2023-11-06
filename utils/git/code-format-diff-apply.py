@@ -109,31 +109,6 @@ def apply_patches(args: argparse.Namespace) -> None:
     if proc.returncode != 0:
         raise(f"Failed to add files to commit")
 
-    # run git commit -m "Apply diff from comment {args.comment_id}"
-    commit_cmd = [
-        "git",
-        "commit",
-        "-m",
-        f"\"Apply diff from comment {args.comment_id}\""
-    ]
-    print(f"Running: {' '.join(commit_cmd)}")
-    proc = subprocess.run(commit_cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        print(proc.stdout)
-        print(proc.stderr)
-        raise(f"Failed to commit changes")
-    # run git push pr.head.repo.full_name pr.head.ref
-    push_cmd = [
-        "git",
-        "push",
-        "pr",
-        pr.head.ref
-    ]
-    print(f"Running: {' '.join(push_cmd)}")
-    proc = subprocess.run(push_cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise(f"Failed to push changes to {pr.head.ref}")
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
