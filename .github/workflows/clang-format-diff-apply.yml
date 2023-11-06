@@ -68,4 +68,9 @@ jobs:
             --token ${{ secrets.GITHUB_TOKEN }} \
             --issue-number $GITHUB_PR_NUMBER \
             --comment-id $COMMENT_ID
-
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          branch: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
