@@ -1,2 +1,2 @@
 a      =                                                                                          32
-print(                                                                                                          a )
+print(                                                                                                           a )
