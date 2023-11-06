@@ -117,8 +117,10 @@ def apply_patches(args: argparse.Namespace) -> None:
         f"\"Apply diff from comment {args.comment_id}\""
     ]
     print(f"Running: {' '.join(commit_cmd)}")
-    proc = subprocess.run(commit_cmd, capture_output=True)
+    proc = subprocess.run(commit_cmd, capture_output=True, text=True)
     if proc.returncode != 0:
+        print(proc.stdout)
+        print(proc.stderr)
         raise(f"Failed to commit changes")
     # run git push pr.head.repo.full_name pr.head.ref
     push_cmd = [
