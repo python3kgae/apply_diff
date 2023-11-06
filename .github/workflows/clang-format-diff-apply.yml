@@ -34,7 +34,6 @@ jobs:
           echo "COMMENT_ID: $COMMENT_ID"
 
   apply_diff:
-    needs: [check_trigger]
     if: ${{ startsWith(github.event.comment.body, '@apply-formatting<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
