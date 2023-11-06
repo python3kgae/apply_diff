@@ -1,10 +1,12 @@
 name: "Apply code formatting"
 on:
   issue_comment:
-    types: created
+    types: edited
     # Filter by reaction type
     #reactions:
     #  - +1
+env:
+  TRIGGER: false
 
 permissions:
   pull-requests: write
@@ -39,12 +41,18 @@ jobs:
            reaction: rocket
          env:
            GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-    outputs:
-      trigger: ${{ steps.check.outputs.trigger }}
+      -  name: echo format_output
+         run: |
+           echo TRIGGER is $TRIGGERED
+           echo "TRIGGER=$TRIGGERED" >> $GITHUB_ENV
+         env:
+           TRIGGERED: ${{ steps.check.outputs.triggered }}
 
   apply_diff:
     needs: [check_trigger]
-    if: ${{ needs.check_trigger.outputs.trigger == 'true' }}
+    env:
+      TRIGGER: ${{ env.TRIGGER }}
+    if: ${{ env.TRIGGER == 'true' }}
     #if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
