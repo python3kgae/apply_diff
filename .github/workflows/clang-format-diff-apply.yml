@@ -3,8 +3,8 @@ on:
   issue_comment:
     types: created
     # Filter by reaction type
-    reactions:
-      - +1
+    #reactions:
+    #  - +1
 
 permissions:
   pull-requests: write
@@ -19,11 +19,13 @@ jobs:
           AUTHOR: ${{ github.event.pull_request.author }}
           SENDER: ${{ github.event.sender }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          REACTION: ${{ github.event.comment.reaction }}
         run: |
           echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
           echo "COMMENT: $COMMENT"
           echo "AUTHOR: $AUTHOR"
           echo "SENDER: $SENDER"
+          echo "REACTION: $REACTION"
 
   apply_diff:
     if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
