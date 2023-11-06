@@ -20,8 +20,9 @@ jobs:
           COMMENT: ${{ github.event.comment.body }}
           AUTHOR: ${{ github.event.pull_request.author }}
           CREATE_AT: ${{ github.event.pull_request.created_at  }}
-          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
-          REACTION: ${{ github.event.comment.reactions.rocket }}
+          GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
+          REACTION: ${{ github.event.issue.reactions.rocket }}
+          ISSUE_REACTION: ${{ github.event.comment.reactions.rocket }}
           USER: ${{ github.event.comment.author }}
         run: |
           echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
@@ -29,6 +30,7 @@ jobs:
           echo "AUTHOR: $AUTHOR"
           echo "CREATE_AT: $CREATE_AT"
           echo "REACTION: $REACTION"
+          echo "ISSUE_REACTION: $ISSUE_REACTION"
           echo "USER: $USER"
 
   check_trigger:
@@ -59,7 +61,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: download-diff
-          path: /home/runner/work/format/${{ github.event.pull_request.number }}
+          path: /home/runner/work/format/${{ github.event.issue.number }}
 
       - name: Fetch LLVM sources
         uses: actions/checkout@v4
