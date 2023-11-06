@@ -32,39 +32,6 @@ def apply_patches(args: argparse.Namespace) -> None:
     print(pr.head.repo.full_name)
     print(pr.head.repo.html_url)
     print(pr.head.ref)
-    # git add remote for pr.head.repo.full_name
-    remote_cmd = [
-        "git",
-        "remote",
-        "add",
-        "pr",
-        pr.head.repo.html_url
-    ]
-    print(f"Running: {' '.join(remote_cmd)}")
-    proc = subprocess.run(remote_cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise(f"Failed to add remote for {pr.head.repo.full_name}")
-    # git fetch pr.head.ref
-    fetch_cmd = [
-        "git",
-        "fetch",
-        "pr",
-        pr.head.ref
-    ]
-    print(f"Running: {' '.join(fetch_cmd)}")
-    proc = subprocess.run(fetch_cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise(f"Failed to fetch {pr.head.ref}")
-    # git checkout pr.head.ref
-    checkout_cmd = [
-        "git",
-        "checkout",
-        pr.head.ref
-    ]
-    print(f"Running: {' '.join(checkout_cmd)}")
-    proc = subprocess.run(checkout_cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise(f"Failed to checkout {pr.head.ref}")
 
     comment = pr.get_issue_comment(args.comment_id)
     if comment is None:
