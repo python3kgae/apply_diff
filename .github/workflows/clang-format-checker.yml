@@ -69,4 +69,4 @@ jobs:
           format_output: ${{ env.format_output }}
         if: ${{ env.format_output == 'diff' }}
         with:
-          path: $GITHUB_WORKSPACE/../format/$GITHUB_PR_NUMBER
+          path: /home/runner/work/format/${{ github.event.pull_request.number }}
