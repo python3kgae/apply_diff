@@ -23,7 +23,7 @@ jobs:
           REACTION: ${{ github.event.issue.reactions.rocket }}
           ISSUE_REACTION: ${{ github.event.comment.reactions.rocket }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
-          REPO: ${{ github.event.pull_request.head.repo }}
+          REPO: ${{ github.event.pull_request.head.repo.name }}
           USER: ${{ github.event.comment.author }}
         run: |
           echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
