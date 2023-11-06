@@ -24,7 +24,9 @@ diff_pat = re.compile(r"``````````diff(?P<DIFF>.+)``````````", re.DOTALL)
 def apply_patches(args: argparse.Namespace) -> None:
     repo = github.Github(args.token).get_repo(args.repo)
     pr = repo.get_issue(args.issue_number).as_pull_request()
+    print("head repo is")
     print(pr.head.repo.full_name)
+    print("head ref is")
     print(pr.head.ref)    
     comment = pr.get_issue_comment(args.comment_id)
     if comment is None:
