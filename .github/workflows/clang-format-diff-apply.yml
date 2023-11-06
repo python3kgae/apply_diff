@@ -27,9 +27,25 @@ jobs:
           echo "AUTHOR: $AUTHOR"
           echo "CREATE_AT: $CREATE_AT"
           echo "REACTION: $REACTION"
+          echo "USER: $USER"
+
+  check_trigger:
+    runs-on: ubuntu-latest
+    steps:
+      -  uses: khan/pull-request-comment-trigger@v1.1.0
+         id: check
+         with:
+           trigger: '@apply-formatting'
+           reaction: rocket
+         env:
+           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+    outputs:
+      trigger: ${{ steps.check.outputs.trigger }}
 
   apply_diff:
-    if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
+    needs: [check_trigger]
+    if: ${{ needs.check_trigger.outputs.trigger == 'true' }}
+    #if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
