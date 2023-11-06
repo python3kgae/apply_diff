@@ -54,13 +54,19 @@ jobs:
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES"
            then
-              echo "format_output=diff" >> $GITHUB_OUTPUT
+              echo "format_output=clear" >> $GITHUB_ENV
             else
-              echo "format_output=clear" >> $GITHUB_OUTPUT
+              echo "format_output=diff" >> $GITHUB_ENV
             fi
+
+      - name: echo format_output
+        run: |
+           echo format_output is $format_output
 
       - name: Upload diff
         uses: actions/upload-artifact@v3
+        env:
+          format_output: ${{ env.format_output }}
         if: ${{ env.format_output == 'diff' }}
         with:
-          path: /clang-format-patch/$GITHUB_PR_NUMBER
+          path: $GITHUB_WORKSPACE/../format/$GITHUB_PR_NUMBER
