@@ -55,7 +55,7 @@ jobs:
 
       - name: Apply code diff
         env:
-          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
           COMMENT_ID: ${{ github.event.comment.id }}
         run: |
           python utils/git/code-format-diff-apply.py \
