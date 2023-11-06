@@ -17,12 +17,13 @@ jobs:
         env:
           COMMENT: ${{ github.event.comment.body }}
           COMMENT_ID: ${{ github.event.comment.id }}
-          COMMENT_NODE_ID: ${{ github.event.comment.node_id }}
           AUTHOR: ${{ github.event.pull_request.author }}
           CREATE_AT: ${{ github.event.pull_request.created_at  }}
           GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
           REACTION: ${{ github.event.issue.reactions.rocket }}
           ISSUE_REACTION: ${{ github.event.comment.reactions.rocket }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPO: ${{ github.event.pull_request.head.repo }}
           USER: ${{ github.event.comment.author }}
         run: |
           echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
@@ -33,7 +34,8 @@ jobs:
           echo "ISSUE_REACTION: $ISSUE_REACTION"
           echo "USER: $USER"
           echo "COMMENT_ID: $COMMENT_ID"
-          echo "COMMENT_NODE_ID: $COMMENT_NODE_ID"
+          echo "BRANCH: $BRANCH"
+          echo "REPO: $REPO"
 
   apply_diff:
     if: ${{ startsWith(github.event.comment.body, '@apply-formatting<!--LLVM CODE FORMAT COMMENT:') }}
