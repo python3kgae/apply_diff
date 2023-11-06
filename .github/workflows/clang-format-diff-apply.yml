@@ -10,6 +10,21 @@ permissions:
   pull-requests: write
 
 jobs:
+  echo_comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: echo
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+          AUTHOR: ${{ github.event.pull_request.author }}
+          SENDER: ${{ github.event.sender }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
+          echo "COMMENT: $COMMENT"
+          echo "AUTHOR: $AUTHOR"
+          echo "SENDER: $SENDER"
+
   apply_diff:
     if: ${{ github.event.sender == github.event.pull_request.author && startsWith(github.event.comment.body, '<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
