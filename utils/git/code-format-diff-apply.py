@@ -46,8 +46,10 @@ def apply_patches(args: argparse.Namespace) -> None:
             tmp.name
         ]
         print(f"Running: {' '.join(apply_cmd)}")
-        proc = subprocess.run(apply_cmd, capture_output=True)
+        proc = subprocess.run(apply_cmd, capture_output=True, text=True)
         if proc.returncode != 0:
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to apply diff from comment {args.comment_id}")
 
     # run git add .
