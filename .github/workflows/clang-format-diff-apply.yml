@@ -58,7 +58,7 @@ jobs:
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
           COMMENT_ID: ${{ github.event.comment.id }}
         run: |
-          python utils/git/code-format-helper.py \
+          python utils/git/code-format-diff-apply.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
             --issue-number $GITHUB_PR_NUMBER \
             --comment-id $COMMENT_ID
