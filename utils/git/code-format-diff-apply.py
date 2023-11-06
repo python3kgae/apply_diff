@@ -87,9 +87,7 @@ def apply_patches(args: argparse.Namespace) -> None:
         apply_cmd = [
             "git",
             "apply",
-            tmp.name,
-            "-v",
-            "--check"
+            tmp.name
         ]
         print(f"Running: {' '.join(apply_cmd)}")
         proc = subprocess.run(apply_cmd, capture_output=True, text=True)
