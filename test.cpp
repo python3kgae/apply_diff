@@ -1,2 +1,2 @@
-     void foo() {}
-        void bar() {}
+      void foo() {}
+         void bar() {}
