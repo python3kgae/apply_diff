@@ -25,28 +25,36 @@ CR = '\r'
 
 diff_pat = re.compile(r"``````````diff(?P<DIFF>.+)``````````", re.DOTALL)
 
+def get_diff_from_comment(comment: IssueComment.IssueComment) -> str:
+    m = re.search(diff_pat, comment.body)
+    if m is None:
+        raise Exception(f"Could not find diff in comment {comment.id}")
+    diff = m.group("DIFF")
+    # force to linux line endings
+    diff = diff.replace(CRLF, LF).replace(CR, LF)
+    return diff
+
+def run_cmd(cmd: [str]) -> None:
+    print(f"Running: {' '.join(cmd)}")
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        print(proc.stdout)
+        print(proc.stderr)
+        raise Exception(f"Failed to run {' '.join(cmd)}")
+
 def apply_patches(args: argparse.Namespace) -> None:
     repo = github.Github(args.token).get_repo(args.repo)
     pr = repo.get_issue(args.issue_number).as_pull_request()
 
-    print(pr.head.repo.full_name)
-    print(pr.head.repo.html_url)
-    print(pr.head.ref)
-
     comment = pr.get_issue_comment(args.comment_id)
     if comment is None:
-        raise(f"Comment {args.comment_id} does not exist")
+        raise Exception(f"Comment {args.comment_id} does not exist")
 
     # get the diff from the comment
-    m = re.search(diff_pat, comment.body)
-    if m is None:
-        raise(f"Could not find diff in comment {args.comment_id}")
-    diff = m.group("DIFF")
+    diff = get_diff_from_comment(comment)
 
-    # create a temporary file
+    # write diff to temporary file and apply
     with tempfile.NamedTemporaryFile() as tmp:
-        # force to linux line endings
-        diff = diff.replace(CRLF, LF).replace(CR, LF)
         tmp.write(diff.encode("utf-8"))
         tmp.flush()
 
@@ -56,12 +64,7 @@ def apply_patches(args: argparse.Namespace) -> None:
             "apply",
             tmp.name
         ]
-        print(f"Running: {' '.join(apply_cmd)}")
-        proc = subprocess.run(apply_cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            print(proc.stdout)
-            print(proc.stderr)
-            raise(f"Failed to apply diff from comment {args.comment_id}")
+        run_cmd(apply_cmd)
 
     # run git add .
     add_cmd = [
@@ -69,10 +72,7 @@ def apply_patches(args: argparse.Namespace) -> None:
         "add",
         "."
     ]
-    print(f"Running: {' '.join(add_cmd)}")
-    proc = subprocess.run(add_cmd, capture_output=True)
-    if proc.returncode != 0:
-        raise(f"Failed to add files to commit")
+    run_cmd(add_cmd)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
