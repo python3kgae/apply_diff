@@ -2,42 +2,11 @@ name: "Apply code formatting"
 on:
   issue_comment:
     types: edited
-    # Filter by reaction type
-    #reactions:
-    #  - +1
 
 permissions:
-  pull-requests: write
   contents: write
 
 jobs:
-  echo_comment:
-    runs-on: ubuntu-latest
-    steps:
-      - name: echo
-        env:
-          COMMENT: ${{ github.event.comment.body }}
-          COMMENT_ID: ${{ github.event.comment.id }}
-          AUTHOR: ${{ github.event.pull_request.author }}
-          CREATE_AT: ${{ github.event.pull_request.created_at  }}
-          GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
-          REACTION: ${{ github.event.issue.reactions.rocket }}
-          ISSUE_REACTION: ${{ github.event.comment.reactions.rocket }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
-          REPO: ${{ github.event.pull_request.head.repo.name }}
-          USER: ${{ github.event.comment.author }}
-        run: |
-          echo "GITHUB_PR_NUMBER: $GITHUB_PR_NUMBER"
-          echo "COMMENT: $COMMENT"
-          echo "AUTHOR: $AUTHOR"
-          echo "CREATE_AT: $CREATE_AT"
-          echo "REACTION: $REACTION"
-          echo "ISSUE_REACTION: $ISSUE_REACTION"
-          echo "USER: $USER"
-          echo "COMMENT_ID: $COMMENT_ID"
-          echo "BRANCH: $BRANCH"
-          echo "REPO: $REPO"
-
   apply_diff:
     if: ${{ startsWith(github.event.comment.body, '@apply-formatting<!--LLVM CODE FORMAT COMMENT:') }}
     runs-on: ubuntu-latest
