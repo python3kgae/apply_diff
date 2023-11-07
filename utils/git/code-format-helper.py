@@ -73,16 +73,6 @@ View the diff from {self.name} here.
         existing_comment = self.find_comment(pr)
         pr_text = self.pr_comment_text(diff)
 
-        patch_path = os.path.join("/home/runner/work/format",f"{args.issue_number}")
-        if not os.path.exists(patch_path):
-            os.makedirs(patch_path)
-        with open(os.path.join(patch_path,f"{self.name}.patch"), "w") as patch_file:
-            patch_file.write(diff)
-
-        pr_text += f"diff saved to {patch_path}"
-
-        print(pr_text)
-
         if existing_comment:
             existing_comment.edit(pr_text)
         else:

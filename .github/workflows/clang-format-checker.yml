@@ -47,26 +47,9 @@ jobs:
           END_REV: ${{ github.event.pull_request.head.sha }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-           if python utils/git/code-format-helper.py \
+           python utils/git/code-format-helper.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
             --issue-number $GITHUB_PR_NUMBER \
             --start-rev $START_REV \
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES"
-           then
-              echo "format_output=clear" >> $GITHUB_ENV
-            else
-              echo "format_output=diff" >> $GITHUB_ENV
-            fi
-
-      - name: echo format_output
-        run: |
-           echo format_output is $format_output
-
-      - name: Upload diff
-        uses: actions/upload-artifact@v3
-        env:
-          format_output: ${{ env.format_output }}
-        if: ${{ env.format_output == 'diff' }}
-        with:
-          path: /home/runner/work/format/${{ github.event.pull_request.number }}
