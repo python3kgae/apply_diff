@@ -57,8 +57,7 @@ View the diff from {self.name} here.
 
 </details>
 
-- [ ] Check this box to apply formatting changes to this branch.
-"""
+- [ ] Check this box to apply formatting changes to this branch."""
 
     def find_comment(
         self, pr: PullRequest.PullRequest
