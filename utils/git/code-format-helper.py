@@ -63,7 +63,7 @@ If above diff looks good, add @apply-format to beginning of this comment to appl
 </summary>
 
 `
-Click the 'Update comment' button
+Click the 'Update comment' button  
 Change '<!--LLVM' to '@apply-format<!--LLVM'
 `
 
