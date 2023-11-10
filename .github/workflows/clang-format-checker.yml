@@ -1,5 +1,7 @@
 name: "Check code formatting"
-on: [pull_request_target,push]
+on: 
+  pull_request_target:
+    types: [synchronize]
 permissions:
   pull-requests: write
 
