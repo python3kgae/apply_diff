@@ -1,4 +1,4 @@
-              void foo() {}
-                  void bar() {}
-            float foo(float);
+void foo() {}
+void bar() {}
+float foo(float);
 float bar(float);
