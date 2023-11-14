@@ -31,7 +31,7 @@ class FormatHelper:
     def comment_tag(self) -> str:
         return self.COMMENT_TAG.replace("fmt", self.name)
 
-    def format_run(self, changed_files: [str], args: argparse.Namespace) -> str | None:
+    def format_run(self, changed_files: [str], start_rev: [str], end_rev: [str]) -> str | None:
         pass
 
     def pr_comment_text(self, diff: str) -> str:
@@ -161,13 +161,11 @@ View the diff from {self.name} here.
             print(proc.stderr)
             raise(f"Failed to add files to commit")   
 
-    def run(self, changed_files: [str], args: argparse.Namespace):
-        diff = self.format_run(changed_files, args)
+    def run(self, changed_files: [str], pr: PullRequest.PullRequest, start_rev: [str], end_rev: [str], apply_diff: bool) -> bool:
+        diff = self.format_run(changed_files, start_rev, end_rev)
 
-        repo = github.Github(args.token).get_repo(args.repo)
-        pr = repo.get_issue(args.issue_number).as_pull_request()
         if diff:
-            if not args.apply_diff:
+            if not apply_diff:
                 self.update_pr(diff, pr)
                 return False
             else:
@@ -205,15 +203,15 @@ class ClangFormatHelper(FormatHelper):
                     filtered_files.append(path)
         return filtered_files
 
-    def format_run(self, changed_files: [str], args: argparse.Namespace) -> str | None:
+    def format_run(self, changed_files: [str], start_rev: [str], end_rev: [str]) -> str | None:
         cpp_files = self.filter_changed_files(changed_files)
         if not cpp_files:
             return
         cf_cmd = [
             "git-clang-format",
             "--diff",
-            args.start_rev,
-            args.end_rev,
+            start_rev,
+            end_rev,
             "--",
         ] + cpp_files
         print(f"Running: {' '.join(cf_cmd)}")
@@ -244,7 +242,7 @@ class DarkerFormatHelper(FormatHelper):
 
         return filtered_files
 
-    def format_run(self, changed_files: [str], args: argparse.Namespace) -> str | None:
+    def format_run(self, changed_files: [str], start_rev: [str], end_rev: [str]) -> str | None:
         py_files = self.filter_changed_files(changed_files)
         if not py_files:
             return
@@ -253,7 +251,7 @@ class DarkerFormatHelper(FormatHelper):
             "--check",
             "--diff",
             "-r",
-            f"{args.start_rev}..{args.end_rev}",
+            f"{start_rev}..{end_rev}",
         ] + py_files
         print(f"Running: {' '.join(darker_cmd)}")
         self.darker_cmd = darker_cmd
@@ -296,7 +294,7 @@ class FormatRunner:
     def run(self):
         exit_code = 0
         for fmt in self.formatters:
-            if not fmt.run(self.changed_files, self.pr):
+            if not fmt.run(self.changed_files, self.pr, self.args.start_rev, self.args.end_rev, self.args.apply_diff):
                 exit_code = 1
 
         sys.exit(exit_code)
