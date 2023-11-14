@@ -93,7 +93,7 @@ View the diff from {self.name} here.
             "git",
             "remote",
             "add",
-            f"pr-{self.name}",
+            "pr",
             pr.head.repo.html_url
         ]
         print(f"Running: {' '.join(remote_cmd)}")
@@ -166,13 +166,25 @@ View the diff from {self.name} here.
         push_cmd = [
             "git",
             "push",
-            f"pr-{self.name}",
+            "pr",
             pr.head.ref
         ]
         print(f"Running: {' '.join(push_cmd)}")
         proc = subprocess.run(push_cmd, capture_output=True)
         if proc.returncode != 0:
             raise(f"Failed to push changes to {pr.head.ref}")
+
+        # remove the remote
+        remote_cmd = [
+            "git",
+            "remote",
+            "remove",
+            "pr"
+        ]
+        print(f"Running: {' '.join(remote_cmd)}")
+        proc = subprocess.run(remote_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to remove remote for {pr.head.repo.full_name}")
 
     def run(self, changed_files: [str], args: argparse.Namespace):
         diff = self.format_run(changed_files, args)
