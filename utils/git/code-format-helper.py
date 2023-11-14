@@ -143,7 +143,9 @@ View the diff from {self.name} here.
             print(f"Running: {' '.join(apply_cmd)}")
             proc = subprocess.run(apply_cmd, capture_output=True)
             if proc.returncode != 0:
-                raise(f"Failed to apply diff from comment {args.comment_id}")
+                print(proc.stdout)
+                print(proc.stderr)
+                raise(f"Failed to apply diff from {self.name}")
 
         # run git add .
         add_cmd = [
@@ -154,14 +156,16 @@ View the diff from {self.name} here.
         print(f"Running: {' '.join(add_cmd)}")
         proc = subprocess.run(add_cmd, capture_output=True)
         if proc.returncode != 0:
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to add files to commit")   
 
-        # run git commit -m "Apply diff from comment {args.comment_id}"
+        # run git commit -m "Apply diff from {self.name}"
         commit_cmd = [
             "git",
             "commit",
             "-m",
-            f"Apply diff from comment {args.comment_id}"
+            f"Apply diff from {self.name}"
         ]
         print(f"Running: {' '.join(commit_cmd)}")
         proc = subprocess.run(commit_cmd, capture_output=True)
