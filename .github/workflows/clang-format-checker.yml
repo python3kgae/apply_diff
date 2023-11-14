@@ -61,6 +61,8 @@ jobs:
   apply_diff:
     if: ${{ github.event_name == 'issue_comment' && endsWith(github.event.comment.body, '- [x] Check this box to apply formatting changes to this branch.') }}
     runs-on: ubuntu-latest
+    env:
+      TMP_DIFF_FILE: /tmp/diff.patch
     steps:
       - uses: actions/github-script@v3
         id: get-pr
@@ -101,7 +103,21 @@ jobs:
           python utils/git/code-format-diff-apply.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
             --issue-number $GITHUB_PR_NUMBER \
+            --tmp-diff-file $TMP_DIFF_FILE \
             --comment-id $COMMENT_ID
+
+      - name: Fetch LLVM sources for head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+          repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
+
+      - name: apply diff
+        run: |
+          git apply $TMP_DIFF_FILE
+          git add .
+
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
