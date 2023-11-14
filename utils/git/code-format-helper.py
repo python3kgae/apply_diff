@@ -12,6 +12,7 @@ import argparse
 import os
 import subprocess
 import sys
+import tempfile
 from functools import cached_property
 
 import github
@@ -67,10 +68,7 @@ View the diff from {self.name} here.
                 return comment
         return None
 
-    def update_pr(self, diff: str, args: argparse.Namespace):
-        repo = github.Github(args.token).get_repo(args.repo)
-        pr = repo.get_issue(args.issue_number).as_pull_request()
-
+    def update_pr(self, diff: str, pr: PullRequest.PullRequest):
         existing_comment = self.find_comment(pr)
         pr_text = self.pr_comment_text(diff)
 
@@ -79,10 +77,7 @@ View the diff from {self.name} here.
         else:
             pr.as_issue().create_comment(pr_text)
 
-    def update_pr_success(self, args: argparse.Namespace):
-        repo = github.Github(args.token).get_repo(args.repo)
-        pr = repo.get_issue(args.issue_number).as_pull_request()
-
+    def update_pr_success(self, pr: PullRequest.PullRequest):
         existing_comment = self.find_comment(pr)
         if existing_comment:
             existing_comment.edit(
@@ -91,16 +86,83 @@ View the diff from {self.name} here.
 :white_check_mark: With the latest revision this PR passed the {self.friendly_name}.
 """
             )
+    
+    def apply_diff(self, diff: str, pr: PullRequest.PullRequest):
+        # git add remote for pr.head.repo.full_name
+        remote_cmd = [
+            "git",
+            "remote",
+            "add",
+            "pr",
+            pr.head.repo.html_url
+        ]
+        print(f"Running: {' '.join(remote_cmd)}")
+        proc = subprocess.run(remote_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to add remote for {pr.head.repo.full_name}")
+        # git fetch pr.head.ref
+        fetch_cmd = [
+            "git",
+            "fetch",
+            "pr",
+            pr.head.ref
+        ]
+        print(f"Running: {' '.join(fetch_cmd)}")
+        proc = subprocess.run(fetch_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to fetch {pr.head.ref}")
+        # git checkout pr.head.ref
+        checkout_cmd = [
+            "git",
+            "checkout",
+            pr.head.ref
+        ]
+        print(f"Running: {' '.join(checkout_cmd)}")
+        proc = subprocess.run(checkout_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to checkout {pr.head.ref}")
+
+        # create a temporary file
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp.write(diff.encode("utf-8"))
+            tmp.flush()
+
+            # run git apply tmp.name
+            apply_cmd = [
+                "git",
+                "apply",
+                tmp.name
+            ]
+            print(f"Running: {' '.join(apply_cmd)}")
+            proc = subprocess.run(apply_cmd, capture_output=True)
+            if proc.returncode != 0:
+                raise(f"Failed to apply diff from comment {args.comment_id}")
+
+        # run git add .
+        add_cmd = [
+            "git",
+            "add",
+            "."
+        ]
+        print(f"Running: {' '.join(add_cmd)}")
+        proc = subprocess.run(add_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to add files to commit")   
 
     def run(self, changed_files: [str], args: argparse.Namespace):
         diff = self.format_run(changed_files, args)
-        if diff:
-            self.update_pr(diff, args)
-            return False
-        else:
-            self.update_pr_success(args)
-            return True
 
+        repo = github.Github(args.token).get_repo(args.repo)
+        pr = repo.get_issue(args.issue_number).as_pull_request()
+        if diff:
+            if not args.apply_diff:
+                self.update_pr(diff, pr)
+                return False
+            else:
+                self.apply_diff(diff, pr)
+        # If we get here, we have successfully formatted the code
+        self.update_pr_success(pr)
+        return True
 
 class ClangFormatHelper(FormatHelper):
     name = "clang-format"
@@ -219,6 +281,12 @@ if __name__ == "__main__":
         "--changed-files",
         type=str,
         help="Comma separated list of files that has been changed",
+    )
+    parser.add_argument(
+        "--apply-diff",
+        type=bool,
+        required=True,
+        help="Apply the diff to the head branch",
     )
 
     args = parser.parse_args()
