@@ -169,7 +169,9 @@ View the diff from {self.name} here.
         ]
         print(f"Running: {' '.join(commit_cmd)}")
         proc = subprocess.run(commit_cmd, capture_output=True)
-        if proc.returncode != 0:
+        if proc.returncode != 0:            
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to commit changes")
         # run git push pr.head.repo.full_name pr.head.ref
         push_cmd = [
@@ -181,6 +183,8 @@ View the diff from {self.name} here.
         print(f"Running: {' '.join(push_cmd)}")
         proc = subprocess.run(push_cmd, capture_output=True)
         if proc.returncode != 0:
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to push changes to {pr.head.ref}")
 
         # remove the remote
@@ -192,7 +196,9 @@ View the diff from {self.name} here.
         ]
         print(f"Running: {' '.join(remote_cmd)}")
         proc = subprocess.run(remote_cmd, capture_output=True)
-        if proc.returncode != 0:
+        if proc.returncode != 0:            
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to remove remote for {pr.head.repo.full_name}")
 
     def run(self, changed_files: [str], args: argparse.Namespace):
