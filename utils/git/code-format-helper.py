@@ -328,8 +328,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--apply-diff",
-        type=bool,
-        required=True,
+        default=False, action='store_true',
         help="Apply the diff to the head branch",
     )
 
