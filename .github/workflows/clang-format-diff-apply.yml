@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   apply_diff:
-    if: ${{ endsWith(github.event.comment.body, '- [x] Check this box to apply formatting changes to this branch.') }}
+    if: ${{ github.event_name == 'pull_request_target' && endsWith(github.event.comment.body, '- [x] Check this box to apply formatting changes to this branch.') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v3
@@ -33,25 +33,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      # Fetch the head branch
-      - run: |
-          git remote add pr ${{ fromJSON(steps.get-pr.outputs.result).head.repo.clone_url }}
-          git fetch pr ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v40
-        with:
-          separator: ","
-          fetch_depth: 100 # Fetches only the last 10 commits
-          sha: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
-          base_sha: ${{ fromJSON(steps.get-pr.outputs.result).base.ref }}
-          
-      - name: "Listed files"
-        run: |
-          echo "Formatting files:"
-          echo "${{ steps.changed-files.outputs.all_changed_files }}"
-
       - name: Install clang-format
         uses: aminya/setup-cpp@v1
         with:
@@ -74,6 +55,7 @@ jobs:
           START_REV: ${{ fromJSON(steps.get-pr.outputs.result).base.sha }}
           END_REV: ${{ fromJSON(steps.get-pr.outputs.result).head.sha }}
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          COMMENT_ID: ${{ github.event.comment.id }}
         run: |
            python utils/git/code-format-helper.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
@@ -81,6 +63,7 @@ jobs:
             --start-rev $START_REV \
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES" \
+            --comment-id $COMMENT_ID \
             --apply-diff
 
       - name: Commit & Push changes
