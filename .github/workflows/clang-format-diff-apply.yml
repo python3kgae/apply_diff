@@ -33,6 +33,11 @@ jobs:
         with:
           fetch-depth: 2
 
+      # Fetch the head branch
+      - run: |
+          git remote add pr ${{ fromJSON(steps.get-pr.outputs.result).head.repo.clone_url }}
+          git fetch pr ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v39
