@@ -93,12 +93,14 @@ View the diff from {self.name} here.
             "git",
             "remote",
             "add",
-            "pr",
+            f"pr-{self.name}",
             pr.head.repo.html_url
         ]
         print(f"Running: {' '.join(remote_cmd)}")
         proc = subprocess.run(remote_cmd, capture_output=True)
         if proc.returncode != 0:
+            print(proc.stdout)
+            print(proc.stderr)
             raise(f"Failed to add remote for {pr.head.repo.full_name}")
         # git fetch pr.head.ref
         fetch_cmd = [
@@ -148,6 +150,29 @@ View the diff from {self.name} here.
         proc = subprocess.run(add_cmd, capture_output=True)
         if proc.returncode != 0:
             raise(f"Failed to add files to commit")   
+
+        # run git commit -m "Apply diff from comment {args.comment_id}"
+        commit_cmd = [
+            "git",
+            "commit",
+            "-m",
+            f"Apply diff from comment {args.comment_id}"
+        ]
+        print(f"Running: {' '.join(commit_cmd)}")
+        proc = subprocess.run(commit_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to commit changes")
+        # run git push pr.head.repo.full_name pr.head.ref
+        push_cmd = [
+            "git",
+            "push",
+            f"pr-{self.name}",
+            pr.head.ref
+        ]
+        print(f"Running: {' '.join(push_cmd)}")
+        proc = subprocess.run(push_cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise(f"Failed to push changes to {pr.head.ref}")
 
     def run(self, changed_files: [str], args: argparse.Namespace):
         diff = self.format_run(changed_files, args)
