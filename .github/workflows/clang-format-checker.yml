@@ -52,5 +52,4 @@ jobs:
             --issue-number $GITHUB_PR_NUMBER \
             --start-rev $START_REV \
             --end-rev $END_REV \
-            --changed-files "$CHANGED_FILES" \
-            --apply-diff false
+            --changed-files "$CHANGED_FILES"

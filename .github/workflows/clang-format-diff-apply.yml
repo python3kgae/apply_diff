@@ -74,7 +74,7 @@ jobs:
             --start-rev $START_REV \
             --end-rev $END_REV \
             --changed-files "$CHANGED_FILES" \
-            --apply-diff true
+            --apply-diff
 
       - name: Commit & Push changes
         uses: actions-js/push@master
