@@ -39,8 +39,8 @@ jobs:
         with:
           separator: ","
           fetch_depth: 100 # Fetches only the last 10 commits
-          sha: ${{ fromJSON(steps.get-pr.outputs.result).head.sha }}
-          base_sha: ${{ fromJSON(steps.get-pr.outputs.result).base.sha }}
+          sha: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+          base_sha: ${{ fromJSON(steps.get-pr.outputs.result).base.ref }}
           
       - name: "Listed files"
         run: |
