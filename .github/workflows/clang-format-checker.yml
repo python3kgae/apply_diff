@@ -60,6 +60,7 @@ jobs:
             --changed-files "$CHANGED_FILES"
   apply_diff:
     if: ${{ github.event_name == 'issue_comment' && endsWith(github.event.comment.body, '- [x] Check this box to apply formatting changes to this branch.') }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v3
         id: get-pr
