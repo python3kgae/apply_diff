@@ -1,7 +1,7 @@
 name: "Check code formatting"
 on: 
   pull_request_target:
-    types: synchronize
+    types: [opened,synchronize]
   issue_comment:
     types: edited
 permissions:
