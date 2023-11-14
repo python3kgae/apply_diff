@@ -26,14 +26,29 @@ jobs:
               return result.data
             } catch (err) {
               core.setFailed(`Request failed with error ${err}`)
-            } 
+            }
+
       - name: Fetch LLVM sources
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-          token: ${{ secrets.TEST }}
-          ref: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
-          repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v39
+        with:
+          separator: ","
+          fetch_depth: 100 # Fetches only the last 10 commits
+
+      - name: "Listed files"
+        run: |
+          echo "Formatting files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+      - name: Install clang-format
+        uses: aminya/setup-cpp@v1
+        with:
+          clangformat: 17.0.1
 
       - name: Setup Python env
         uses: actions/setup-python@v4
@@ -45,18 +60,25 @@ jobs:
       - name: Install python dependencies
         run: pip install -r utils/git/requirements_formatting.txt
 
-      - name: Apply code diff
+      - name: Run code formatter
+        id: formatter
         env:
-          GITHUB_PR_NUMBER: ${{ github.event.issue.number }}
-          COMMENT_ID: ${{ github.event.comment.id }}
+          GITHUB_PR_NUMBER: ${{ fromJSON(steps.get-pr.outputs.result).number }}
+          START_REV: ${{ fromJSON(steps.get-pr.outputs.result).base.sha }}
+          END_REV: ${{ fromJSON(steps.get-pr.outputs.result).head.sha }}
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          python utils/git/code-format-diff-apply.py \
+           python utils/git/code-format-helper.py \
             --token ${{ secrets.GITHUB_TOKEN }} \
             --issue-number $GITHUB_PR_NUMBER \
-            --comment-id $COMMENT_ID
+            --start-rev $START_REV \
+            --end-rev $END_REV \
+            --changed-files "$CHANGED_FILES" \
+            --apply-diff true
+
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
           branch: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
           repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
-          github_token: ${{ secrets.TEST }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
