@@ -18,6 +18,9 @@ from functools import cached_property
 import github
 from github import IssueComment, PullRequest
 
+LF = '\n'
+CRLF = '\r\n'
+CR = '\r'
 
 class FormatHelper:
     COMMENT_TAG = "<!--LLVM CODE FORMAT COMMENT: {fmt}-->"
@@ -126,6 +129,8 @@ View the diff from {self.name} here.
 
         # create a temporary file
         with tempfile.NamedTemporaryFile() as tmp:
+            # force to linux line endings
+            diff = diff.replace(CRLF, LF).replace(CR, LF)
             tmp.write(diff.encode("utf-8"))
             tmp.flush()
 
