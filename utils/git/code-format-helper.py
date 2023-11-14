@@ -10,6 +10,7 @@
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -160,47 +161,6 @@ View the diff from {self.name} here.
             print(proc.stderr)
             raise(f"Failed to add files to commit")   
 
-        # run git commit -m "Apply diff from {self.name}"
-        commit_cmd = [
-            "git",
-            "commit",
-            "-m",
-            f"Apply diff from {self.name}"
-        ]
-        print(f"Running: {' '.join(commit_cmd)}")
-        proc = subprocess.run(commit_cmd, capture_output=True)
-        if proc.returncode != 0:            
-            print(proc.stdout)
-            print(proc.stderr)
-            raise(f"Failed to commit changes")
-        # run git push pr.head.repo.full_name pr.head.ref
-        push_cmd = [
-            "git",
-            "push",
-            "pr",
-            pr.head.ref
-        ]
-        print(f"Running: {' '.join(push_cmd)}")
-        proc = subprocess.run(push_cmd, capture_output=True)
-        if proc.returncode != 0:
-            print(proc.stdout)
-            print(proc.stderr)
-            raise(f"Failed to push changes to {pr.head.ref}")
-
-        # remove the remote
-        remote_cmd = [
-            "git",
-            "remote",
-            "remove",
-            "pr"
-        ]
-        print(f"Running: {' '.join(remote_cmd)}")
-        proc = subprocess.run(remote_cmd, capture_output=True)
-        if proc.returncode != 0:            
-            print(proc.stdout)
-            print(proc.stderr)
-            raise(f"Failed to remove remote for {pr.head.repo.full_name}")
-
     def run(self, changed_files: [str], args: argparse.Namespace):
         diff = self.format_run(changed_files, args)
 
@@ -305,8 +265,42 @@ class DarkerFormatHelper(FormatHelper):
 
         return None
 
-
 ALL_FORMATTERS = (DarkerFormatHelper(), ClangFormatHelper())
+
+class FormatRunner:
+    def __init__(self, changed_files: [str], args: argparse.Namespace):
+        self.changed_files = changed_files
+        self.args = args
+        
+        repo = github.Github(args.token).get_repo(args.repo)
+        self.pr = repo.get_issue(args.issue_number).as_pull_request()
+
+        if args.comment_id:
+            comment = self.pr.get_issue_comment(args.comment_id)
+            if comment is None:
+                raise Exception(f"Comment {args.comment_id} does not exist")
+            format_pat = re.compile(r"<!--LLVM CODE FORMAT COMMENT: (?P<FMT>.+)-->")
+            m = re.match(format_pat, comment.body)
+            if m is None:
+                raise Exception(f"Could not find format in comment {args.comment_id}")
+            fmt = m.group("FMT")
+            if fmt == "clang-format":
+                self.formatters = (ClangFormatHelper())
+            elif fmt == "darker":
+                self.formatters = (DarkerFormatHelper())
+            else:
+                raise Exception(f"Unknown format {fmt}")
+        else:
+            self.formatters = ALL_FORMATTERS
+
+    def run(self):
+        exit_code = 0
+        for fmt in self.formatters:
+            if not fmt.run(self.changed_files, self.pr):
+                exit_code = 1
+
+        sys.exit(exit_code)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -341,15 +335,12 @@ if __name__ == "__main__":
         help="Apply the diff to the head branch",
     )
 
+    parser.add_argument("--comment-id", type=int, required=False)
+
     args = parser.parse_args()
 
     changed_files = []
     if args.changed_files:
         changed_files = args.changed_files.split(",")
 
-    exit_code = 0
-    for fmt in ALL_FORMATTERS:
-        if not fmt.run(changed_files, args):
-            exit_code = 1
-
-    sys.exit(exit_code)
+    FormatRunner(changed_files, args).run()
