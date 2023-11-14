@@ -162,6 +162,7 @@ View the diff from {self.name} here.
             raise(f"Failed to add files to commit")   
 
     def run(self, changed_files: [str], pr: PullRequest.PullRequest, start_rev: [str], end_rev: [str], apply_diff: bool) -> bool:
+        print(changed_files, start_rev, end_rev)
         diff = self.format_run(changed_files, start_rev, end_rev)
 
         if diff:
@@ -170,6 +171,8 @@ View the diff from {self.name} here.
                 return False
             else:
                 self.apply_diff(diff, pr)
+        else:
+            print("no diff with apply_diff={apply_diff}")
         # If we get here, we have successfully formatted the code
         self.update_pr_success(pr)
         return True
