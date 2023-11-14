@@ -76,3 +76,10 @@ jobs:
             --changed-files "$CHANGED_FILES" \
             --apply-diff true
 
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          branch: ${{ fromJSON(steps.get-pr.outputs.result).head.ref }}
+          repository: ${{ fromJSON(steps.get-pr.outputs.result).head.repo.full_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
