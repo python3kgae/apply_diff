@@ -6,6 +6,7 @@ on:
     types: edited
 permissions:
   pull-requests: write
+  contents: write
 
 jobs:
   code_formatter:
